@@ -14,13 +14,16 @@ def aloca(prefs):
     alunos = []
     
     for (aluno, lista) in prefs_ordenado:
+        colocado = False
         for projecto in lista:
             if projecto not in alocados:
                 alocados.append(projecto)
-                alunos.append(aluno)
+                colocado = True
+                break
+        if not colocado:
+            alunos.append(aluno)
     
-    alunos_ordenada = [t[0] for t in prefs_ordenado]
-    return [x for x in alunos_ordenada if x not in alunos]
+    return alunos
     
 '''
 Defina uma função que, dada uma lista de nomes de pessoas, devolva essa lista ordenada 
@@ -67,33 +70,7 @@ def cruzamentos(ruas):
     tuplo.sort(key = lambda t: t[1])
     
     return tuplo
-    
-'''
-Defina uma função que recebe um número positivo
-e produz a soma dos seus factores primos distintos.
-'''
 
-def factoriza(n):
-    factores = []
-    f = 3
-    
-    while n % 2 == 0:
-        n //= 2
-        if 2 not in factores:
-            factores.append(2)
-            
-    while f*f <= n:
-        while n % f == 0:
-            n //= f
-            if f not in factores:
-                factores.append(f)
-        f += 2
-    
-    if n > 1:
-        factores.append(n)
-        
-    return sum(factores)
-    
 '''
 Neste problem pretende-se que defina uma função que, dada uma string com palavras, 
 devolva uma lista com as palavras nela contidas ordenada por ordem de frequência,
@@ -103,18 +80,19 @@ por ordem alfabética.
 
 def frequencia(texto):
     d = {}
-    
+
     for palavra in texto.split():
         if palavra not in d:
             d[palavra] = 1
         else:
             d[palavra] += 1
-            
+
     tuplo = list(d.items())
-    tuplo.sort(key = lambda x: x[0])
-    tuplo.sort(key = lambda x: x[1], reverse = True)
-    
+    tuplo.sort(key=lambda x: x[0])
+    tuplo.sort(key=lambda x: x[1], reverse=True)
+
     return [t[0] for t in tuplo]
+
 
 '''
 Implemente uma função que calcula a tabela classificativa de um campeonato de
@@ -126,7 +104,7 @@ de golos marcados e sofridos para desempatar, e, se persistir o empate, o nome
 da equipa.
 '''
 
-def tabela(jogos):
+def futebol(jogos):
     pontos = {}
     
     for timeA, golosA, timeB, golosB in jogos:
@@ -225,6 +203,9 @@ contém n repetições de uma determinada palavra
 '''
 
 def repete(palavra,n):
+    if(n == 0):
+        return ''
+        
     iguais = 0
     
     for i in range(len(palavra)):
@@ -234,11 +215,13 @@ def repete(palavra,n):
             break
             
     lista = list(palavra)
-    if iguais != 0:
+    if iguais != 0 and iguais != len(lista):
         del lista[:iguais]
+    elif iguais == len(lista):
+        del lista [:iguais - 1]
         
     sem_iguais = ''.join(lista)
-    return palavra + (sem_iguais * (n - 1)) 
+    return palavra + (sem_iguais * (n - 1))
 
 '''
 Neste problema prentede-se que implemente uma função que calcula o rectângulo onde se movimenta um robot.
@@ -283,3 +266,116 @@ def robot(comandos):
             max_mins = [0,0,0,0]
     
     return lista
+
+"""
+Implemente uma função que formata um programa em C.
+O código será fornecido numa única linha e deverá introduzir
+um '\n' após cada ';', '{', ou '}' (com excepção da última linha).
+No caso do '{' as instruções seguintes deverão também estar identadas
+2 espaços para a direita.
+"""
+
+def formata(codigo):
+    especiais = [';', '{', '}']
+    string = ''
+    counter = 0
+    flag = 0  # 1 se o último char é especial, 0 caso contrário
+
+    for i in range(len(codigo)):
+        if codigo[i] == '{':
+            counter += 2
+        elif codigo[i] == '}':
+            counter -= 2
+
+        if flag == 1 and codigo[i] in especiais:
+            string = string + '\n' + (' ' * counter) + codigo[i]
+        elif flag == 1 and codigo[i] == ' ':
+            continue
+        elif flag == 1 and codigo[i] not in especiais:
+            string = string + '\n' + (' ' * counter) + codigo[i]
+            flag = 0
+        elif flag == 0 and codigo[i] in especiais:
+            string = string + codigo[i]
+            flag = 1
+        else:
+            string += codigo[i]
+
+    return string
+
+"""
+Implemente uma função que calcula o horário de uma turma de alunos.
+A função recebe dois dicionários, o primeiro associa a cada UC o
+respectivo horário (um triplo com dia da semana, hora de início e
+duração) e o segundo associa a cada aluno o conjunto das UCs em
+que está inscrito. A função deve devolver uma lista com os alunos que
+conseguem frequentar todas as UCs em que estão inscritos, indicando
+para cada um desses alunos o respecto número e o número total de horas
+semanais de aulas. Esta lista deve estar ordenada por ordem decrescente
+de horas e, para horas idênticas, por ordem crescente de número.
+"""
+
+def horario(ucs, alunos):
+    resultado = []
+
+    for numero in alunos:
+        total = 0
+        frequencia = True
+        indisponiveis = {}
+        for cadeira in alunos[numero]:
+            if cadeira not in ucs:
+                frequencia = False
+                break
+            else:
+                (dia, hora, duracao) = ucs[cadeira]
+            if not disponibilidade(ucs[cadeira], indisponiveis):
+                frequencia = False
+                break
+            else:
+                if dia not in indisponiveis:
+                    indisponiveis[dia] = []
+                for i in range(duracao + 1):
+                    indisponiveis[dia].append(hora + i)
+                total += duracao
+        if frequencia:
+            resultado.append((numero, total))
+
+    resultado.sort(key=lambda t: t[0])
+    resultado.sort(key=lambda t: t[1], reverse=True)
+
+    return resultado
+
+def disponibilidade(t, indisponiveis):
+    pode = True
+    if t[0] in indisponiveis:
+        for i in range(t[2] + 1):
+            if (t[1] + i) in indisponiveis[t[0]]:
+                pode = False
+                break
+
+    return pode
+
+'''
+Defina uma função que recebe um número positivo
+e produz a soma dos seus factores primos distintos.
+'''
+
+def factoriza(n):
+    factores = []
+    f = 3
+    
+    while n % 2 == 0:
+        n //= 2
+        if 2 not in factores:
+            factores.append(2)
+            
+    while f*f <= n:
+        while n % f == 0:
+            n //= f
+            if f not in factores:
+                factores.append(f)
+        f += 2
+    
+    if n > 1:
+        factores.append(n)
+        
+    return sum(factores)
